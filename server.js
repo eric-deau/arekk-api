@@ -16,7 +16,7 @@ const pool = mysql.createPool({
 });
 
 // GET all players
-app.get("/api/galaga/players", async (req, res) => {
+app.get("/galaga/players", async (req, res) => {
   const [rows] = await pool.query("SELECT * FROM players");
   res.json(rows);
 });
@@ -70,6 +70,21 @@ app.post("/galaga/players", async (req, res) => {
     res.status(500).json({ error: "Database error" });
   }
 });
+
+app.get("/galaga/leaderboard", async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT username, score FROM players ORDER BY score DESC LIMIT 10"
+    );
+
+    res.json(rows);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
 
 
 app.listen(process.env.PORT, "127.0.0.1", () => {
