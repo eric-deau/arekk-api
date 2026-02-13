@@ -22,7 +22,7 @@ app.get("/api/galaga/players", async (req, res) => {
 });
 
 // enter score
-app.post("/players", async (req, res) => {
+app.post("/galaga/players", async (req, res) => {
   try {
     const { username, email, score } = req.body;
 
@@ -71,17 +71,6 @@ app.post("/players", async (req, res) => {
   }
 });
 
-// UPDATE score
-app.put("/api/galaga/players/:id", async (req, res) => {
-  const { score } = req.body;
-
-  await pool.query(
-    "UPDATE players SET score = ? WHERE id = ?",
-    [score, req.params.id]
-  );
-
-  res.json({ message: "Score updated" });
-});
 
 app.listen(process.env.PORT, "127.0.0.1", () => {
   console.log(`Server running on port ${process.env.PORT}`);
