@@ -10,8 +10,8 @@ app.use(express.json());
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
+  user: process.env.DB_NORMAL_USER,
+  password: process.env.DB_USER_PASSWORD,
   database: process.env.DB_NAME,
 });
 
@@ -21,16 +21,54 @@ app.get("/api/galaga/players", async (req, res) => {
   res.json(rows);
 });
 
-// CREATE player
-app.post("/api/galaga/players", async (req, res) => {
-  const { username, score, email } = req.body;
+// enter score
+app.post("/players", async (req, res) => {
+  try {
+    const { username, email, score } = req.body;
 
-  const [result] = await pool.query(
-    "INSERT INTO players (username, score, email) VALUES (?, ?, ?)",
-    [username, score, email]
-  );
+    if (!username || !email) {
+      return res.status(400).json({ error: "Username and email required" });
+    }
 
-  res.json({ id: result.insertId, username, score });
+    const [rows] = await pool.query(
+      "SELECT * FROM players WHERE email = ?",
+      [email]
+    );
+
+    if (rows.length > 0) {
+      const existingUser = rows[0];
+
+      if (existingUser.username !== username) {
+        return res.status(409).json({
+          error: "Email already exists with a different username"
+        });
+      }
+
+      if (existingUser.score >= score) {
+        return res.status(412).json({
+          error: "Current score is not more than highest score. Score not updated."
+        })
+      }
+
+      await pool.query(
+        "UPDATE players SET score = GREATEST(score, ?) WHERE email = ?",
+        [score, email]
+      );
+
+      return res.json({ message: "Score updated" });
+    }
+
+    await pool.query(
+      "INSERT INTO players (username, email, score) VALUES (?, ?, ?)",
+      [username, email, score]
+    );
+
+    res.status(201).json({ message: "Player created" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
 });
 
 // UPDATE score
