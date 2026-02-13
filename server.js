@@ -23,11 +23,11 @@ app.get("/api/galaga/players", async (req, res) => {
 
 // CREATE player
 app.post("/api/galaga/players", async (req, res) => {
-  const { username, score } = req.body;
+  const { username, score, email } = req.body;
 
   const [result] = await pool.query(
-    "INSERT INTO players (username, score) VALUES (?, ?)",
-    [username, score]
+    "INSERT INTO players (username, score, email) VALUES (?, ?, ?)",
+    [username, score, email]
   );
 
   res.json({ id: result.insertId, username, score });
