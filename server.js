@@ -34,8 +34,6 @@ app.post("/galaga/players", async (req, res) => {
   try {
     const { username, password, score } = req.body;
 
-    console.log(score);
-
     if (!username || !password) {
       return res.status(400).json({ error: "Username and password required" });
     }
@@ -48,11 +46,6 @@ app.post("/galaga/players", async (req, res) => {
     if (rows.length > 0) {
       const existingUser = rows[0];
 
-      // if (existingUser.username === username && existingUser.passwords) {
-      //   return res.status(409).json({
-      //     error: "password already exists with a different username"
-      //   });
-      // }
       const valid = await verifyPassword(password, existingUser.password);
 
       if (!valid) {
@@ -90,6 +83,7 @@ app.post("/galaga/players", async (req, res) => {
   }
 });
 
+// get top five players by score
 app.get("/galaga/leaderboard", async (req, res) => {
   try {
     const [rows] = await pool.query(
