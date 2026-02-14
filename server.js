@@ -2,10 +2,18 @@ require("dotenv").config();
 const express = require("express");
 const mysql = require("mysql2/promise");
 const cors = require("cors");
+const bcrypt = require("bcrypt");
+const { verify } = require("node:crypto");
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: "", 
+  origin: "http://127.0.0.1:5500",
+  methods: ["GET", "POST"],
+  credentials: true           
+}));
+
 app.use(express.json());
 
 const pool = mysql.createPool({
@@ -24,24 +32,33 @@ app.get("/galaga/players", async (req, res) => {
 // enter score
 app.post("/galaga/players", async (req, res) => {
   try {
-    const { username, email, score } = req.body;
+    const { username, password, score } = req.body;
 
-    if (!username || !email) {
-      return res.status(400).json({ error: "Username and email required" });
+    console.log(score);
+
+    if (!username || !password) {
+      return res.status(400).json({ error: "Username and password required" });
     }
 
     const [rows] = await pool.query(
-      "SELECT * FROM players WHERE email = ?",
-      [email]
+      "SELECT * FROM players WHERE username = ?",
+      [username]
     );
 
     if (rows.length > 0) {
       const existingUser = rows[0];
 
-      if (existingUser.username !== username) {
-        return res.status(409).json({
-          error: "Email already exists with a different username"
-        });
+      // if (existingUser.username === username && existingUser.passwords) {
+      //   return res.status(409).json({
+      //     error: "password already exists with a different username"
+      //   });
+      // }
+      const valid = await verifyPassword(password, existingUser.password);
+
+      if (!valid) {
+        return res.status(401).json({
+          error: "Incorrect password for pre-existing user. Please re-enter your password."
+        })
       }
 
       if (existingUser.score >= score) {
@@ -51,16 +68,18 @@ app.post("/galaga/players", async (req, res) => {
       }
 
       await pool.query(
-        "UPDATE players SET score = GREATEST(score, ?) WHERE email = ?",
-        [score, email]
+        "UPDATE players SET score = GREATEST(score, ?) WHERE password = ?",
+        [score, existingUser.password]
       );
 
       return res.json({ message: "Score updated" });
     }
 
+    const password_hash = await hashPassword(password);
+
     await pool.query(
-      "INSERT INTO players (username, email, score) VALUES (?, ?, ?)",
-      [username, email, score]
+      "INSERT INTO players (username, password, score) VALUES (?, ?, ?)",
+      [username, password_hash, score]
     );
 
     res.status(201).json({ message: "Player created" });
@@ -85,6 +104,13 @@ app.get("/galaga/leaderboard", async (req, res) => {
   }
 });
 
+async function hashPassword(password) {
+  return await bcrypt.hash(password, Number(process.env.SALT_ROUNDS));
+}
+
+async function verifyPassword(password, hash) {
+  return await bcrypt.compare(password, hash);
+}
 
 
 app.listen(process.env.PORT, "127.0.0.1", () => {
