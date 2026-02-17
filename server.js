@@ -7,14 +7,16 @@ const { verify } = require("node:crypto");
 
 const app = express();
 
-app.use(cors({
-  origin: [
-    "https://budgetgalaga.netlify.app",
-    "http://127.0.0.1:5500"
-  ],
-  methods: ["GET", "POST", "OPTIONS"],
-  credentials: true
-}));
+// app.use(cors({
+//   origin: [
+//     "https://budgetgalaga.netlify.app",
+//     "http://127.0.0.1:5500"
+//   ],
+//   methods: ["GET", "POST", "OPTIONS"],
+//   credentials: true
+// }));
+app.use(cors());
+
 
 app.use(express.json());
 
