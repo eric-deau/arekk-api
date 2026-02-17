@@ -9,10 +9,11 @@ const app = express();
 
 app.use(cors({
   origin: [
-    "https://budgetgalaga.netlify.app", 
-    "http://127.0.0.1:5500"],
+    "https://budgetgalaga.netlify.app",
+    "http://127.0.0.1:5500"
+  ],
   methods: ["GET", "POST"],
-  credentials: true           
+  credentials: true
 }));
 
 app.use(express.json());
@@ -62,8 +63,8 @@ app.post("/galaga/players", async (req, res) => {
       }
 
       await pool.query(
-        "UPDATE players SET score = GREATEST(score, ?) WHERE password = ?",
-        [score, existingUser.password]
+        "UPDATE players SET score = GREATEST(score, ?) WHERE username = ?",
+        [score, username]
       );
 
       return res.json({ message: "Score updated" });
