@@ -7,19 +7,14 @@ const { verify } = require("node:crypto");
 
 const app = express();
 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
-
-  next();
-});
-
+app.use(cors({
+  origin: [
+    "https://budgetgalaga.netlify.app",
+    "http://127.0.0.1:5500"
+  ],
+  methods: ["GET", "POST", "OPTIONS"],
+  credentials: true
+}));
 
 app.use(express.json());
 
