@@ -88,6 +88,7 @@ app.post("/galaga/players", async (req, res) => {
 // get top five players by score
 app.get("/galaga/leaderboard", async (req, res) => {
   try {
+    res.set("Cache-Control", "no-store"); 
     const [rows] = await pool.query(
       "SELECT username, score FROM players ORDER BY score DESC LIMIT 10"
     );
@@ -99,6 +100,7 @@ app.get("/galaga/leaderboard", async (req, res) => {
     res.status(500).json({ error: "Database error" });
   }
 });
+
 
 async function hashPassword(password) {
   return await bcrypt.hash(password, Number(process.env.SALT_ROUNDS));
