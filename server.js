@@ -8,11 +8,21 @@ const { verify } = require("node:crypto");
 const app = express();
 
 app.use(cors({
-  origin: [
-    "https://budgetgalaga.netlify.app",
-    "http://127.0.0.1:5500"
-  ],
-  methods: ["GET", "POST", "OPTIONS"],
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      "https://budgetgalaga.netlify.app",
+      "http://127.0.0.1:5500"
+    ];
+
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.log("Blocked by CORS:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true
 }));
 
@@ -88,7 +98,6 @@ app.post("/galaga/players", async (req, res) => {
 // get top five players by score
 app.get("/galaga/leaderboard", async (req, res) => {
   try {
-    res.set("Cache-Control", "no-store"); 
     const [rows] = await pool.query(
       "SELECT username, score FROM players ORDER BY score DESC LIMIT 10"
     );
@@ -100,7 +109,6 @@ app.get("/galaga/leaderboard", async (req, res) => {
     res.status(500).json({ error: "Database error" });
   }
 });
-
 
 async function hashPassword(password) {
   return await bcrypt.hash(password, Number(process.env.SALT_ROUNDS));
