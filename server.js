@@ -12,7 +12,7 @@ app.use(cors({
     "https://budgetgalaga.netlify.app",
     "http://127.0.0.1:5500"
   ],
-  methods: ["GET", "POST"],
+  methods: ["GET", "POST", "OPTIONS"],
   credentials: true
 }));
 
