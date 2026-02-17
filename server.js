@@ -7,8 +7,6 @@ const { verify } = require("node:crypto");
 
 const app = express();
 
-const cors = require("cors");
-
 app.use(cors({
   origin: "https://budgetgalaga.netlify.app",
   methods: ["GET","POST","OPTIONS"]
